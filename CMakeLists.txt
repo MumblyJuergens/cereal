@@ -25,4 +25,6 @@ target_include_directories(cereal PUBLIC "include")
 target_link_libraries(cereal PUBLIC mj::mj)
 MJFullCompilerWarnings(cereal)
 
-add_subdirectory("tests")
+if (PROJECT_IS_TOP_LEVEL)
+    add_subdirectory("tests")
+endif()
