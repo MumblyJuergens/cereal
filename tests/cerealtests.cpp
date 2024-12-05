@@ -107,8 +107,9 @@ TEST_CASE("Deserializable after", "[struct,after]")
     cereal::stream_serializer out{stream};
     cereal::stream_deserializer in{stream};
 
-    cereal::serialize(out, item);
-    tester_after result = cereal::deserialize<tester_after>(in);
+    item.serialize(out);
+    tester_after result;
+    result.deserialize(in);
 
     REQUIRE(result.i == item.i);
     REQUIRE(result.f == item.f);
@@ -121,8 +122,8 @@ TEST_CASE("Deserializable during", "[struct,during]")
     cereal::stream_serializer out{stream};
     cereal::stream_deserializer in{stream};
 
-    cereal::serialize(out, item);
-    tester_during result = cereal::deserialize<tester_during>(in);
+    item.serialize(out);
+    tester_during result{in};
 
     REQUIRE(result.i == item.i);
     REQUIRE(result.f == item.f);

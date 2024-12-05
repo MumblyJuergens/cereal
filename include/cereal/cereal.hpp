@@ -56,41 +56,4 @@ namespace cereal
 
     static_assert(deserializer<stream_deserializer>);
 
-    template <typename T, typename S>
-    concept serializable = serializer<S> && requires(T t, S s) {
-        { t.serialize(s) };
-    };
-
-    template <typename T, typename S>
-    concept deserializable = deserializer<S> && requires(T t, S s) {
-        { t.deserialize(s) };
-    };
-
-    template <typename Serializer>
-    inline void serialize(Serializer &out, serializable<Serializer> auto &item)
-    {
-        item.serialize(out);
-    }
-
-    template <typename T, typename S>
-    concept deserializable_during_construction = deserializer<S> && requires(T t, S s) {
-        { T{s} };
-    };
-
-    template <typename T, typename Deserializer>
-        requires deserializable<T, Deserializer>
-    auto deserialize(Deserializer &in)
-    {
-        T item{};
-        item.deserialize(in);
-        return item;
-    }
-
-    template <typename T, typename Deserializer>
-        requires deserializable_during_construction<T, Deserializer>
-    auto deserialize(Deserializer &in)
-    {
-        return T{in};
-    }
-
 } // End namespace cereal.
