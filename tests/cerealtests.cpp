@@ -13,23 +13,25 @@ TEST_CASE("Integer (de)serialization", "[fundamental,integer]")
     std::int32_t itemi32 = 123456;
     std::int64_t itemi64 = 12345645;
     std::stringstream stream;
+    cereal::stream_serializer out{stream};
+    cereal::stream_deserializer in{stream};
 
-    cereal::serialize(stream, itemui8);
-    cereal::serialize(stream, itemui16);
-    cereal::serialize(stream, itemui32);
-    cereal::serialize(stream, itemui64);
-    cereal::serialize(stream, itemi8);
-    cereal::serialize(stream, itemi16);
-    cereal::serialize(stream, itemi32);
-    cereal::serialize(stream, itemi64);
-    auto resultui8 = cereal::deserialize<std::uint8_t>(stream);
-    auto resultui16 = cereal::deserialize<std::uint16_t>(stream);
-    auto resultui32 = cereal::deserialize<std::uint32_t>(stream);
-    auto resultui64 = cereal::deserialize<std::uint64_t>(stream);
-    auto resulti8 = cereal::deserialize<std::int8_t>(stream);
-    auto resulti16 = cereal::deserialize<std::int16_t>(stream);
-    auto resulti32 = cereal::deserialize<std::int32_t>(stream);
-    auto resulti64 = cereal::deserialize<std::int64_t>(stream);
+    out.serialize(itemui8);
+    out.serialize(itemui16);
+    out.serialize(itemui32);
+    out.serialize(itemui64);
+    out.serialize(itemi8);
+    out.serialize(itemi16);
+    out.serialize(itemi32);
+    out.serialize(itemi64);
+    auto resultui8 = in.deserialize<std::uint8_t>();
+    auto resultui16 = in.deserialize<std::uint16_t>();
+    auto resultui32 = in.deserialize<std::uint32_t>();
+    auto resultui64 = in.deserialize<std::uint64_t>();
+    auto resulti8 = in.deserialize<std::int8_t>();
+    auto resulti16 = in.deserialize<std::int16_t>();
+    auto resulti32 = in.deserialize<std::int32_t>();
+    auto resulti64 = in.deserialize<std::int64_t>();
 
     REQUIRE(stream.tellp() == 30);
     REQUIRE(resultui8 == itemui8);
@@ -47,55 +49,52 @@ TEST_CASE("Floating point (de)serialization", "[fundamental,real]")
     float itemf32 = 123.456f;
     double itemf64 = 456.789;
     std::stringstream stream;
+    cereal::stream_serializer out{stream};
+    cereal::stream_deserializer in{stream};
 
-    cereal::serialize(stream, itemf32);
-    cereal::serialize(stream, itemf64);
-    auto resultf32 = cereal::deserialize<float>(stream);
-    auto resultf64 = cereal::deserialize<double>(stream);
+    out.serialize(itemf32);
+    out.serialize(itemf64);
+    auto resultf32 = in.deserialize<float>();
+    auto resultf64 = in.deserialize<double>();
 
     REQUIRE(stream.tellp() == 12);
     REQUIRE(resultf32 == itemf32);
     REQUIRE(resultf64 == itemf64);
 }
 
-struct tester_after : public cereal::serializable, public cereal::deserializable
+struct tester_after
 {
     int i{123};
     float f{456.789f};
 
-    void serialize(std::ostream &out) override
+    void serialize(cereal::serializer auto &out)
     {
-        cereal::serialize(out, i);
-        cereal::serialize(out, f);
+        out.serialize(i);
+        out.serialize(f);
     }
 
-    void deserialize(std::istream &in) override
+    void deserialize(cereal::deserializer auto &in)
     {
-        i = cereal::deserialize<int>(in);
-        f = cereal::deserialize<float>(in);
+        i = in.template deserialize<int>();
+        f = in.template deserialize<float>();
     }
 };
 
-struct tester_during : public cereal::serializable, public cereal::deserializable
+struct tester_during
 {
     int i;
     float f;
 
-    void serialize(std::ostream &out) override
+    void serialize(cereal::serializer auto &out)
     {
-        cereal::serialize(out, i);
-        cereal::serialize(out, f);
+        out.serialize(i);
+        out.serialize(f);
     }
 
-    void deserialize(std::istream &in) override
+    tester_during(cereal::deserializer auto &in)
     {
-        i = cereal::deserialize<int>(in);
-        f = cereal::deserialize<float>(in);
-    }
-
-    tester_during(std::istream &in)
-    {
-        deserialize(in);
+        i = in.template deserialize<int>();
+        f = in.template deserialize<float>();
     }
 
     tester_during(int vi, float vf) : i{vi}, f{vf} {}
@@ -105,9 +104,11 @@ TEST_CASE("Deserializable after", "[struct,after]")
 {
     tester_after item;
     std::stringstream stream;
+    cereal::stream_serializer out{stream};
+    cereal::stream_deserializer in{stream};
 
-    cereal::serialize(stream, item);
-    tester_after result = cereal::deserialize<tester_after>(stream);
+    cereal::serialize(out, item);
+    tester_after result = cereal::deserialize<tester_after>(in);
 
     REQUIRE(result.i == item.i);
     REQUIRE(result.f == item.f);
@@ -117,9 +118,11 @@ TEST_CASE("Deserializable during", "[struct,during]")
 {
     tester_during item(123, 456.789f);
     std::stringstream stream;
+    cereal::stream_serializer out{stream};
+    cereal::stream_deserializer in{stream};
 
-    cereal::serialize(stream, item);
-    tester_during result = cereal::deserialize<tester_during>(stream);
+    cereal::serialize(out, item);
+    tester_during result = cereal::deserialize<tester_during>(in);
 
     REQUIRE(result.i == item.i);
     REQUIRE(result.f == item.f);
