@@ -1,32 +1,20 @@
 #pragma once
 
 #include <bit>
-#include <concepts>
 #include <istream>
 #include <ostream>
 
 namespace cereal
 {
     template <typename T>
-    concept serializer = requires(T t, int i) {
-        { t.serialize(i) };
-    };
-
-    template <typename T>
-    concept deserializer = requires(T t) {
-        { t.template deserialize<int>() } -> std::convertible_to<int>;
-        { t.template deserialize<float>() } -> std::convertible_to<float>;
-    };
-
-    template <typename T>
     concept fundamental = std::is_arithmetic_v<T>;
 
-    class stream_serializer
+    class Serializer
     {
         std::ostream &os;
 
     public:
-        stream_serializer(std::ostream &os) : os{os} {}
+        Serializer(std::ostream &os) : os{os} {}
 
         void serialize(fundamental auto item)
         {
@@ -36,14 +24,12 @@ namespace cereal
         }
     };
 
-    static_assert(serializer<stream_serializer>);
-
-    class stream_deserializer
+    class Deserializer
     {
         std::istream &is;
 
     public:
-        stream_deserializer(std::istream &is) : is{is} {}
+        Deserializer(std::istream &is) : is{is} {}
 
         template <fundamental T>
         auto deserialize()
@@ -53,7 +39,5 @@ namespace cereal
             return temp;
         }
     };
-
-    static_assert(deserializer<stream_deserializer>);
 
 } // End namespace cereal.

@@ -13,8 +13,8 @@ TEST_CASE("Integer (de)serialization", "[fundamental,integer]")
     std::int32_t itemi32 = 123456;
     std::int64_t itemi64 = 12345645;
     std::stringstream stream;
-    cereal::stream_serializer out{stream};
-    cereal::stream_deserializer in{stream};
+    cereal::Serializer out{stream};
+    cereal::Deserializer in{stream};
 
     out.serialize(itemui8);
     out.serialize(itemui16);
@@ -49,8 +49,8 @@ TEST_CASE("Floating point (de)serialization", "[fundamental,real]")
     float itemf32 = 123.456f;
     double itemf64 = 456.789;
     std::stringstream stream;
-    cereal::stream_serializer out{stream};
-    cereal::stream_deserializer in{stream};
+    cereal::Serializer out{stream};
+    cereal::Deserializer in{stream};
 
     out.serialize(itemf32);
     out.serialize(itemf64);
@@ -67,16 +67,16 @@ struct tester_after
     int i{123};
     float f{456.789f};
 
-    void serialize(cereal::serializer auto &out)
+    void serialize(cereal::Serializer &out)
     {
         out.serialize(i);
         out.serialize(f);
     }
 
-    void deserialize(cereal::deserializer auto &in)
+    void deserialize(cereal::Deserializer &in)
     {
-        i = in.template deserialize<int>();
-        f = in.template deserialize<float>();
+        i = in.deserialize<int>();
+        f = in.deserialize<float>();
     }
 };
 
@@ -85,16 +85,16 @@ struct tester_during
     int i;
     float f;
 
-    void serialize(cereal::serializer auto &out)
+    void serialize(cereal::Serializer &out)
     {
         out.serialize(i);
         out.serialize(f);
     }
 
-    tester_during(cereal::deserializer auto &in)
+    tester_during(cereal::Deserializer &in)
     {
-        i = in.template deserialize<int>();
-        f = in.template deserialize<float>();
+        i = in.deserialize<int>();
+        f = in.deserialize<float>();
     }
 
     tester_during(int vi, float vf) : i{vi}, f{vf} {}
@@ -104,8 +104,8 @@ TEST_CASE("Deserializable after", "[struct,after]")
 {
     tester_after item;
     std::stringstream stream;
-    cereal::stream_serializer out{stream};
-    cereal::stream_deserializer in{stream};
+    cereal::Serializer out{stream};
+    cereal::Deserializer in{stream};
 
     item.serialize(out);
     tester_after result;
@@ -119,8 +119,8 @@ TEST_CASE("Deserializable during", "[struct,during]")
 {
     tester_during item(123, 456.789f);
     std::stringstream stream;
-    cereal::stream_serializer out{stream};
-    cereal::stream_deserializer in{stream};
+    cereal::Serializer out{stream};
+    cereal::Deserializer in{stream};
 
     item.serialize(out);
     tester_during result{in};
