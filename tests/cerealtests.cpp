@@ -1,3 +1,6 @@
+#include <list>
+#include <map>
+#include <unordered_map>
 #include <sstream>
 #include <cereal/cereal.hpp>
 #include <catch2/catch_test_macros.hpp>
@@ -127,4 +130,121 @@ TEST_CASE("Deserializable during", "[struct,during]")
 
     REQUIRE(result.i == item.i);
     REQUIRE(result.f == item.f);
+}
+
+TEST_CASE("Deserialize vector of int", "[container, vector, fundamental]")
+{
+    std::vector<int> item{234, 6575, 123, 6868, 1211};
+    std::stringstream stream;
+    cereal::Serializer out{stream};
+    cereal::Deserializer in{stream};
+
+    out.serialize(item);
+    std::vector<int> result;
+    in.deserialize<int>(std::back_inserter(result));
+
+    REQUIRE(stream.tellp() == (5 * 4) + 8);
+    REQUIRE(item == result);
+}
+
+TEST_CASE("Deserialize vector of int returned", "[container, vector, fundamental]")
+{
+    std::vector<int> item{234, 6575, 123, 6868, 1211};
+    std::stringstream stream;
+    cereal::Serializer out{stream};
+    cereal::Deserializer in{stream};
+
+    out.serialize(item);
+    std::vector<int> result = in.deserialize<std::vector<int>>();
+
+    REQUIRE(stream.tellp() == (5 * 4) + 8);
+    REQUIRE(item == result);
+}
+
+TEST_CASE("Deserialize list of int", "[container, list, fundamental]")
+{
+    std::list<int> item{234, 6575, 123, 6868, 1211};
+    std::stringstream stream;
+    cereal::Serializer out{stream};
+    cereal::Deserializer in{stream};
+
+    out.serialize(item);
+    std::list<int> result;
+    in.deserialize<int>(std::back_inserter(result));
+
+    REQUIRE(stream.tellp() == (5 * 4) + 8);
+    REQUIRE(item == result);
+}
+
+TEST_CASE("Deserialize tuple of int", "[container, tuple, fundamental]")
+{
+    std::tuple<int, int> item{1, 234};
+    std::stringstream stream;
+    cereal::Serializer out{stream};
+    cereal::Deserializer in{stream};
+
+    out.serialize(item);
+    auto result = in.deserialize<std::tuple<int, int>>();
+
+    REQUIRE(stream.tellp() == 8);
+    REQUIRE(std::get<0>(item) == std::get<0>(result));
+    REQUIRE(std::get<1>(item) == std::get<1>(result));
+}
+
+TEST_CASE("Deserialize map of int", "[container, map, fundamental]")
+{
+    std::map<int, int> item{{1, 234}, {2, 6575}, {3, 123}, {4, 6868}, {5, 1211}};
+    std::stringstream stream;
+    cereal::Serializer out{stream};
+    cereal::Deserializer in{stream};
+
+    out.serialize(item);
+    std::map<int, int> result;
+    in.deserialize<std::pair<int, int>>(std::insert_iterator(result, result.end()));
+
+    REQUIRE(stream.tellp() == (5 * 8) + 8);
+    REQUIRE(item == result);
+}
+
+TEST_CASE("Deserialize map of int returned", "[container, map, fundamental]")
+{
+    std::map<int, int> item{{1, 234}, {2, 6575}, {3, 123}, {4, 6868}, {5, 1211}};
+    std::stringstream stream;
+    cereal::Serializer out{stream};
+    cereal::Deserializer in{stream};
+
+    out.serialize(item);
+    std::map<int, int> result = in.deserialize<std::map<int, int>>();
+
+    REQUIRE(stream.tellp() == (5 * 8) + 8);
+    REQUIRE(item == result);
+}
+
+TEST_CASE("Deserialize unordered_map of int", "[container, unordered_map, fundamental]")
+{
+    std::unordered_map<int, int> item{{1, 234}, {2, 6575}, {3, 123}, {4, 6868}, {5, 1211}};
+    std::stringstream stream;
+    cereal::Serializer out{stream};
+    cereal::Deserializer in{stream};
+
+    out.serialize(item);
+    std::unordered_map<int, int> result;
+    in.deserialize<std::pair<int, int>>(std::insert_iterator(result, result.end()));
+
+    REQUIRE(stream.tellp() == (5 * 8) + 8);
+    REQUIRE(item == result);
+}
+
+TEST_CASE("Deserialize unordered_map of int returned", "[container, unordered_map, fundamental]")
+{
+    std::unordered_map<int, int> item{{1, 234}, {2, 6575}, {3, 123}, {4, 6868}, {5, 1211}};
+    std::stringstream stream;
+    cereal::Serializer out{stream};
+    cereal::Deserializer in{stream};
+
+    out.serialize(item);
+    std::unordered_map<int, int> result = in.deserialize<std::unordered_map<int, int>>();
+
+    REQUIRE(stream.tellp() == (5 * 8) + 8);
+    REQUIRE(item == result);
 }
